@@ -65,7 +65,7 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
     for (new_len = initial_len + 1; new_len % (512/8) != 448/8; new_len++)
         ;
  
-    msg = malloc(new_len + 8);
+    msg = (uint8_t *)malloc(new_len + 8);
     memcpy(msg, initial_msg, initial_len);
     msg[initial_len] = 0x80; // append the "1" bit; most significant bit is "first"
     for (offset = initial_len + 1; offset < new_len; offset++)
@@ -136,8 +136,8 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
 // Helper function for using CUDA to compute MD5
 cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
 {
-    unint8_t *dev_initial_msg = 0;
-    unint8_t *dev_digest = 0;
+    uint8_t *dev_initial_msg = 0;
+    uint8_t *dev_digest = 0;
     cudaError_t cudaStatus;
 
     // Choose which GPU to run on, change this on a multi-GPU system.
@@ -148,20 +148,20 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
     }
 
     // Allocate GPU buffers for three vectors (two input, one output).
-    cudaStatus = cudaMalloc((void**)&dev_digest, md5_size * sizeof(unint8_t));
+    cudaStatus = cudaMalloc((void**)&dev_digest, md5_size * sizeof(uint8_t));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
-    cudaStatus = cudaMalloc((void**)&dev_initial_msg, initial_len * sizeof(unint8_t));
+    cudaStatus = cudaMalloc((void**)&dev_initial_msg, initial_len * sizeof(uint8_t));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
 
     // Copy input vectors from host memory to GPU buffers.
-    cudaStatus = cudaMemcpy(dev_initial_msg, initial_msg, initial_len * sizeof(unint8_t), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(dev_initial_msg, initial_msg, initial_len * sizeof(uint8_t), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
@@ -186,7 +186,7 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
     }
 
     // Copy output vector from GPU buffer to host memory.
-    cudaStatus = cudaMemcpy(digest, dev_digest, md5_size * sizeof(unint8_t), cudaMemcpyDeviceToHost);
+    cudaStatus = cudaMemcpy(digest, dev_digest, md5_size * sizeof(uint8_t), cudaMemcpyDeviceToHost);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
