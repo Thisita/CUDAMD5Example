@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     size_t len;
     int i;
     uint8_t result[16];
+	cudaError_t cudaStatus;
  
     if (argc < 2) {
         printf("usage: %s 'string'\n", argv[0]);

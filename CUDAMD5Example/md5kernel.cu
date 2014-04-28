@@ -23,7 +23,7 @@
 
 #include <stdio.h>
 
-__device__ void to_bytes(uint32_t val, uint8_t *bytes)
+__device__ void cuda_to_bytes(uint32_t val, uint8_t *bytes)
 {
     bytes[0] = (uint8_t) val;
     bytes[1] = (uint8_t) (val >> 8);
@@ -31,7 +31,7 @@ __device__ void to_bytes(uint32_t val, uint8_t *bytes)
     bytes[3] = (uint8_t) (val >> 24);
 }
  
-__device__ uint32_t to_int32(const uint8_t *bytes)
+__device__ uint32_t cuda_to_int32(const uint8_t *bytes)
 {
     return (uint32_t) bytes[0]
         | ((uint32_t) bytes[1] << 8)
@@ -72,9 +72,9 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
         msg[offset] = 0; // append "0" bits
  
     // append the len in bits at the end of the buffer.
-    to_bytes(initial_len*8, msg + new_len);
+    cuda_to_bytes(initial_len*8, msg + new_len);
     // initial_len>>29 == initial_len*8>>32, but avoids overflow.
-    to_bytes(initial_len>>29, msg + new_len + 4);
+    cuda_to_bytes(initial_len>>29, msg + new_len + 4);
  
     // Process the message in successive 512-bit chunks:
     //for each 512-bit chunk of message:
@@ -82,7 +82,7 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
  
         // break chunk into sixteen 32-bit words w[j], 0 ≤ j ≤ 15
         for (i = 0; i < 16; i++)
-            w[i] = to_int32(msg + offset + i*4);
+            w[i] = cuda_to_int32(msg + offset + i*4);
  
         // Initialize hash value for this chunk:
         a = h0;
@@ -127,10 +127,10 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
     free(msg);
  
     //var char digest[16] := h0 append h1 append h2 append h3 //(Output is in little-endian)
-    to_bytes(h0, digest);
-    to_bytes(h1, digest + 4);
-    to_bytes(h2, digest + 8);
-    to_bytes(h3, digest + 12);
+    cuda_to_bytes(h0, digest);
+    cuda_to_bytes(h1, digest + 4);
+    cuda_to_bytes(h2, digest + 8);
+    cuda_to_bytes(h3, digest + 12);
 }
 
 // Helper function for using CUDA to compute MD5
