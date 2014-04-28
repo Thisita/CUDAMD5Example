@@ -68,7 +68,7 @@ void md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest) {
     for (new_len = initial_len + 1; new_len % (512/8) != 448/8; new_len++)
         ;
  
-    msg = malloc(new_len + 8);
+    msg = (uint8_t *)malloc(new_len + 8);
     memcpy(msg, initial_msg, initial_len);
     msg[initial_len] = 0x80; // append the "1" bit; most significant bit is "first"
     for (offset = initial_len + 1; offset < new_len; offset++)
