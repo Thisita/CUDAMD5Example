@@ -168,7 +168,7 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
     }
 
     // Launch a kernel on the GPU with one thread for each element.
-	md5kernel<<<1, size>>>(dev_initial_msg, initial_len, dev_digest);
+	md5kernel<<<1, initial_len>>>(dev_initial_msg, initial_len, dev_digest);
 
     // Check for any errors launching the kernel
     cudaStatus = cudaGetLastError();
