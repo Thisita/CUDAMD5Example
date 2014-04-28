@@ -50,7 +50,11 @@ int main(int argc, char **argv) {
 	printf("\n\nTesting GPU\n\n");
     // benchmark gpu
     for (i = 0; i < 100; i++) {
-		md5WithCuda((uint8_t*)msg, len, result);
+		cudaStatus = md5WithCuda((uint8_t*)msg, len, result);
+		if(cudaStatus != cudaSuccess) {
+			printf("An error with CUDA occured!\n");
+			break;
+		}
     }
  
     // display result cpu
