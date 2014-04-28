@@ -20,7 +20,45 @@
 
 #include <stdio.h>
 #include "md5kernel.h"
+#include "md5.h"
 
+int main(int argc, char **argv) {
+    char *msg = argv[1];
+    size_t len;
+    int i;
+    uint8_t result[16];
+ 
+    if (argc < 2) {
+        printf("usage: %s 'string'\n", argv[0]);
+        return 1;
+    }
+ 
+    len = strlen(msg);
+ 
+    // benchmark
+    for (i = 0; i < 100; i++) {
+        md5((uint8_t*)msg, len, result);
+    }
+ 
+    // display result
+    for (i = 0; i < 16; i++)
+        printf("%2.2x", result[i]);
+    puts("");
+    
+    // cudaDeviceReset must be called before exiting in order for profiling and
+    // tracing tools such as Nsight and Visual Profiler to show complete traces.
+    cudaStatus = cudaDeviceReset();
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaDeviceReset failed!");
+        return 1;
+    }
+    
+    return 0;
+}
+
+
+/** original main **/
+#if 0
 int main()
 {
     const int arraySize = 5;
@@ -29,7 +67,7 @@ int main()
     int c[arraySize] = { 0 };
 
     // Add vectors in parallel.
-    cudaError_t cudaStatus = addWithCuda(c, a, b, arraySize);
+    cudaError_t cudaStatus = md5WithCuda(c, a, b, arraySize);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "addWithCuda failed!");
         return 1;
@@ -48,3 +86,4 @@ int main()
 
     return 0;
 }
+#endif
