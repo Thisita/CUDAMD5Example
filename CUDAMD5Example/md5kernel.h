@@ -22,4 +22,6 @@
 
 #include "cuda_runtime.h"
 
-cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
+#define md5_size 16
+
+cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest);
