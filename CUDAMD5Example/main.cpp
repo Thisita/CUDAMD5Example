@@ -66,5 +66,8 @@ int main(int argc, char **argv) {
         return 1;
     }
     
+	// Quick and dirty pause
+	system("pause");
+
     return 0;
 }
