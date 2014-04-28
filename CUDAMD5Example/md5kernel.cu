@@ -181,13 +181,13 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
         goto Error;
     }
 
-    cudaStatus = cudaMemcpy(dev_k, k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(dev_k, cuda_k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
     }
 	
-    cudaStatus = cudaMemcpy(dev_r, r, r_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(dev_r, cuda_r, r_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
         goto Error;
