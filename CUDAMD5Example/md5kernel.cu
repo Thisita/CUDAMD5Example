@@ -39,7 +39,7 @@ __device__ uint32_t to_int32(const uint8_t *bytes)
         | ((uint32_t) bytes[3] << 24);
 }
  
-__global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest) {
+__global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest, const uint32_t *k, const uint32_t *r) {
  
     // These vars will contain the hash
     uint32_t h0, h1, h2, h3;
@@ -138,6 +138,8 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
 {
     uint8_t *dev_initial_msg = 0;
     uint8_t *dev_digest = 0;
+	uint32_t *dev_k = 0;
+	uint32_t *dev_r = 0;
     cudaError_t cudaStatus;
 
     // Choose which GPU to run on, change this on a multi-GPU system.
@@ -148,6 +150,18 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
     }
 
     // Allocate GPU buffers for three vectors (two input, one output).
+    cudaStatus = cudaMalloc((void**)&dev_k, k_size * sizeof(uint32_t));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+	
+    cudaStatus = cudaMalloc((void**)&dev_r, r_size * sizeof(uint32_t));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+
     cudaStatus = cudaMalloc((void**)&dev_digest, md5_size * sizeof(uint8_t));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
@@ -167,8 +181,20 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
         goto Error;
     }
 
+    cudaStatus = cudaMemcpy(dev_k, k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+	
+    cudaStatus = cudaMemcpy(dev_r, r, r_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+
     // Launch a kernel on the GPU with one thread for each element.
-	md5kernel<<<1, initial_len>>>(dev_initial_msg, initial_len, dev_digest);
+	md5kernel<<<1, initial_len>>>(dev_initial_msg, initial_len, dev_digest, dev_k, dev_r);
 
     // Check for any errors launching the kernel
     cudaStatus = cudaGetLastError();
@@ -195,6 +221,8 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
 Error:
     cudaFree(dev_digest);
     cudaFree(dev_initial_msg);
+	cudaFree(dev_k);
+	cudaFree(dev_r);
     
     return cudaStatus;
 }
