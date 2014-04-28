@@ -27,6 +27,8 @@
 #include "cuda_runtime.h"
 
 #define md5_size 16
+#define k_size 64
+#define r_size 64
 
 cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest);
 
@@ -35,6 +37,7 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
  *
  * Compile with: gcc -o md5 md5.c
  */
+
  
 // Constants are the integer part of the sines of integers (in radians) * 2^32.
 const uint32_t k[64] = {
