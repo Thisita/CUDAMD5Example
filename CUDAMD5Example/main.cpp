@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
  
     len = strlen(msg);
 	
+	/*************************************************************************/
 	printf("Testing CPU:\n\n");
     // benchmark cpu
 	begin = clock();
@@ -54,6 +55,7 @@ int main(int argc, char **argv) {
         printf("%2.2x", result[i]);
     puts("");
 
+	/*************************************************************************/
 	printf("\n\nTesting GPU with memory transfers timed\n\n");
 	begin = clock();
     // benchmark gpu
@@ -71,7 +73,7 @@ int main(int argc, char **argv) {
 	} else {
 		printf("CUDA timing invalid because of error\n");
 	}
-
+	/*************************************************************************/
 	printf("\n\nTesting GPU without memory transfers timed\n\n");
     // benchmark gpu
     for (i = 0; i < b; i++) {
