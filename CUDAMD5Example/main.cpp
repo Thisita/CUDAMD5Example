@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         md5((uint8_t*)msg, len, result);
     }
 	end = clock();
-	timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
+	timeSec = static_cast<float>(b / ((end - begin) / static_cast<float>(CLOCKS_PER_SEC)));
 	printf("%fh/s\n\n", timeSec);
     // display result cpu
     for (i = 0; i < 16; i++)
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     }
 	end = clock();
 	if(cudaStatus == cudaSuccess) {
-		timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
+		timeSec = static_cast<float>(b / ((end - begin) / static_cast<float>(CLOCKS_PER_SEC)));
 		printf("%fh/s\n\n", timeSec);
 	} else {
 		printf("CUDA timing invalid because of error\n");
