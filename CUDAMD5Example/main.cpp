@@ -27,10 +27,10 @@ int main(int argc, char **argv) {
     char *msg = argv[1];
     size_t len;
     int i;
-	long b = 10000;
+	long b = 1000;
     uint8_t result[16];
 	cudaError_t cudaStatus;
-	clock_t begin, end;
+	clock_t begin, end, delta;
 	double timeSec;
  
     if (argc < 2) {
@@ -82,13 +82,37 @@ int main(int argc, char **argv) {
 	/*************************************************************************/
 	printf("\n\nTesting GPU without memory transfers timed\n\n");
     // benchmark gpu
+	delta = 0;
     for (i = 0; i < b; i++) {
 		cudaStatus = md5WithCudaTimed((uint8_t*)msg, len, result, begin, end);
 		if(cudaStatus != cudaSuccess) {
 			printf("An error with CUDA occured!\n");
 			break;
+		} else {
+			delta += end - begin;
 		}
     }
+	if(cudaStatus == cudaSuccess) {
+		timeSec = static_cast<float>(b / (delta / static_cast<float>(CLOCKS_PER_SEC)));
+		printf("%fh/s\n\n", timeSec);
+	} else {
+		printf("CUDA timing invalid because of error\n");
+	}
+ 
+    // display result gpu
+    for (i = 0; i < 16; i++)
+        printf("%2.2x", result[i]);
+    puts("");
+
+	/*************************************************************************/
+	printf("\n\nTesting GPU with memory transfers timed but kernel looped\n\n");
+	begin = clock();
+    // benchmark gpu
+	cudaStatus = md5WithCudaRounds((uint8_t*)msg, len, result, b);
+	if(cudaStatus != cudaSuccess) {
+		printf("An error with CUDA occured!\n");
+	}
+	end = clock();
 	if(cudaStatus == cudaSuccess) {
 		timeSec = static_cast<float>(b / ((end - begin) / static_cast<float>(CLOCKS_PER_SEC)));
 		printf("%fh/s\n\n", timeSec);
