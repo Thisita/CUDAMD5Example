@@ -55,32 +55,27 @@ int main(int argc, char **argv) {
     puts("");
 
 	printf("\n\nTesting GPU\n\n");
-	cudaStatus = md5_cuda_init();
-	if(cudaStatus != cudaSuccess) {
-		printf("An error with CUDA init occured!\n");
+	begin = clock();
+    // benchmark gpu
+    for (i = 0; i < b; i++) {
+		cudaStatus = md5WithCuda((uint8_t*)msg, len, result);
+		if(cudaStatus != cudaSuccess) {
+			printf("An error with CUDA occured!\n");
+			break;
+		}
+    }
+	end = clock();
+	if(cudaStatus == cudaSuccess) {
+		timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
+		printf("%fh/s\n\n", timeSec);
 	} else {
-		begin = clock();
-		// benchmark gpu
-		for (i = 0; i < b; i++) {
-			cudaStatus = md5WithCuda((uint8_t*)msg, len, result);
-			if(cudaStatus != cudaSuccess) {
-				printf("An error with CUDA occured!\n");
-				break;
-			}
-		}
-		end = clock();
-		if(cudaStatus == cudaSuccess) {
-			timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
-			printf("%fh/s\n\n", timeSec);
-		} else {
-			printf("\nCUDA timing invalid because of error\n");
-		}
-		md5_cuda_deinit();
-		// display result gpu
-		for (i = 0; i < 16; i++)
-			printf("%2.2x", result[i]);
-		puts("");
+		printf("CUDA timing invalid because of error\n");
 	}
+ 
+    // display result cpu
+    for (i = 0; i < 16; i++)
+        printf("%2.2x", result[i]);
+    puts("");
 
     // cudaDeviceReset must be called before exiting in order for profiling and
     // tracing tools such as Nsight and Visual Profiler to show complete traces.

@@ -30,8 +30,6 @@
 #define k_size 64
 #define r_size 64
 
-cudaError_t md5_cuda_init();
-void md5_cuda_deinit();
 cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest);
 
 /* This is based on the wikipedia example:
