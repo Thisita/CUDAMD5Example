@@ -23,6 +23,10 @@
 
 #include <stdio.h>
 
+// Bad globals
+uint32_t *dev_k = 0;
+uint32_t *dev_r = 0;
+
 __device__ void cuda_to_bytes(uint32_t val, uint8_t *bytes)
 {
     bytes[0] = (uint8_t) val;
@@ -133,21 +137,50 @@ __global__ void md5kernel(const uint8_t *initial_msg, size_t initial_len, uint8_
     cuda_to_bytes(h3, digest + 12);
 }
 
-// Helper function for using CUDA to compute MD5
-cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
+cudaError_t md5_cuda_init()
 {
-    uint8_t *dev_initial_msg = 0;
-    uint8_t *dev_digest = 0;
-	uint32_t *dev_k = 0;
-	uint32_t *dev_r = 0;
     cudaError_t cudaStatus;
-
+	
     // Choose which GPU to run on, change this on a multi-GPU system.
     cudaStatus = cudaSetDevice(0);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
         goto Error;
     }
+
+	// Copy constant data to be shared between all runs
+    cudaStatus = cudaMemcpy(dev_k, cuda_k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+	
+    cudaStatus = cudaMemcpy(dev_r, cuda_r, r_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMemcpy failed!");
+        goto Error;
+    }
+Error:
+	cudaFree(dev_k);
+	cudaFree(dev_r);
+    
+	dev_k = dev_r = 0;
+
+    return cudaStatus;
+}
+
+void md5_cuda_deinit()
+{
+	cudaFree(dev_k);
+	cudaFree(dev_r);
+}
+
+// Helper function for using CUDA to compute MD5
+cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
+{
+    uint8_t *dev_initial_msg = 0;
+    uint8_t *dev_digest = 0;
+    cudaError_t cudaStatus;
 
     // Allocate GPU buffers for three vectors (two input, one output).
     cudaStatus = cudaMalloc((void**)&dev_k, k_size * sizeof(uint32_t));
@@ -181,18 +214,6 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
         goto Error;
     }
 
-    cudaStatus = cudaMemcpy(dev_k, cuda_k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMemcpy failed!");
-        goto Error;
-    }
-	
-    cudaStatus = cudaMemcpy(dev_r, cuda_r, r_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMemcpy failed!");
-        goto Error;
-    }
-
     // Launch a kernel on the GPU with one thread for each element.
 	md5kernel<<<1, initial_len>>>(dev_initial_msg, initial_len, dev_digest, dev_k, dev_r);
 
@@ -221,8 +242,6 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
 Error:
     cudaFree(dev_digest);
     cudaFree(dev_initial_msg);
-	cudaFree(dev_k);
-	cudaFree(dev_r);
     
     return cudaStatus;
 }
