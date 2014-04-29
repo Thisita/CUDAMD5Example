@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 		printf("CUDA timing invalid because of error\n");
 	}
  
-    // display result cpu
+    // display result gpu
     for (i = 0; i < 16; i++)
         printf("%2.2x", result[i]);
     puts("");
