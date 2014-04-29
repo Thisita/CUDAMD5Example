@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 			timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
 			printf("%fh/s\n\n", timeSec);
 		} else {
-			printf("CUDA timing invalid because of error");
+			printf("\nCUDA timing invalid because of error\n");
 		}
 		md5_cuda_deinit();
 		// display result gpu
