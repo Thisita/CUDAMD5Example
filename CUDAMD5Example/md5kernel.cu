@@ -230,7 +230,7 @@ Error:
 }
 
 // Helper function for using CUDA to compute MD5 with timing
-cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest, clock_t *begin, clock_t *end)
+cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest, clock_t& begin, clock_t& end)
 {
     uint8_t *dev_initial_msg = 0;
     uint8_t *dev_digest = 0;
@@ -288,7 +288,7 @@ cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uin
     }
 
 	// Start timing
-	*begin = clock();
+	begin = clock();
 
     // Launch a kernel on the GPU with one thread for each element.
 	md5kernel<<<1, initial_len>>>(dev_initial_msg, initial_len, dev_digest, dev_k, dev_r);
@@ -298,7 +298,7 @@ cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uin
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "addKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
 		// End timing
-		*end = clock();
+		end = clock();
         goto Error;
     }
     
@@ -308,12 +308,12 @@ cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uin
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
 		// End timing
-		*end = clock();
+		end = clock();
         goto Error;
     }
 
 	// End timing
-	*end = clock();
+	end = clock();
 
     // Copy output vector from GPU buffer to host memory.
     cudaStatus = cudaMemcpy(digest, dev_digest, md5_size * sizeof(uint8_t), cudaMemcpyDeviceToHost);

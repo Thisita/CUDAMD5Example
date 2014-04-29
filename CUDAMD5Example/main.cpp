@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 	printf("\n\nTesting GPU without memory transfers timed\n\n");
     // benchmark gpu
     for (i = 0; i < b; i++) {
-		cudaStatus = md5WithCudaTimed((uint8_t*)msg, len, result, &begin, &end);
+		cudaStatus = md5WithCudaTimed((uint8_t*)msg, len, result, begin, end);
 		if(cudaStatus != cudaSuccess) {
 			printf("An error with CUDA occured!\n");
 			break;
