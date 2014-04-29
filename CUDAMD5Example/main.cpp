@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <ctime>
 #include "md5kernel.h"
 #include "md5.h"
 
@@ -26,8 +27,11 @@ int main(int argc, char **argv) {
     char *msg = argv[1];
     size_t len;
     int i;
+	long b = 10000;
     uint8_t result[16];
 	cudaError_t cudaStatus;
+	clock_t begin, end;
+	double timeSec;
  
     if (argc < 2) {
         printf("usage: %s 'string'\n", argv[0]);
@@ -38,24 +42,35 @@ int main(int argc, char **argv) {
 	
 	printf("Testing CPU:\n\n");
     // benchmark cpu
-    for (i = 0; i < 100; i++) {
+	begin = clock();
+    for (i = 0; i < b; i++) {
         md5((uint8_t*)msg, len, result);
     }
- 
+	end = clock();
+	timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
+	printf("%fh/s\n\n", timeSec);
     // display result cpu
     for (i = 0; i < 16; i++)
         printf("%2.2x", result[i]);
     puts("");
 
 	printf("\n\nTesting GPU\n\n");
+	begin = clock();
     // benchmark gpu
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < b; i++) {
 		cudaStatus = md5WithCuda((uint8_t*)msg, len, result);
 		if(cudaStatus != cudaSuccess) {
 			printf("An error with CUDA occured!\n");
 			break;
 		}
     }
+	end = clock();
+	if(cudaStatus == cudaSuccess) {
+		timeSec = (end - begin) / static_cast<float>(b * CLOCKS_PER_SEC);
+		printf("%fh/s\n\n", timeSec);
+	} else {
+		printf("CUDA timing invalid because of error");
+	}
  
     // display result cpu
     for (i = 0; i < 16; i++)
