@@ -73,6 +73,12 @@ int main(int argc, char **argv) {
 	} else {
 		printf("CUDA timing invalid because of error\n");
 	}
+ 
+    // display result gpu
+    for (i = 0; i < 16; i++)
+        printf("%2.2x", result[i]);
+    puts("");
+
 	/*************************************************************************/
 	printf("\n\nTesting GPU without memory transfers timed\n\n");
     // benchmark gpu
