@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <ctime>
 #include "cuda_runtime.h"
 
 #define md5_size 16
@@ -31,6 +32,7 @@
 #define r_size 64
 
 cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest);
+cudaError_t md5WithCudaTimed(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest, clock_t *begin, clock_t *end);
 
 /* This is based on the wikipedia example:
  * Simple MD5 implementation
