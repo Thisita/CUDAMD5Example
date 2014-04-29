@@ -148,6 +148,19 @@ cudaError_t md5_cuda_init()
         goto Error;
     }
 
+	// Allocate GPU buffers for three vectors (two input, one output).
+    cudaStatus = cudaMalloc((void**)&dev_k, k_size * sizeof(uint32_t));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+	
+    cudaStatus = cudaMalloc((void**)&dev_r, r_size * sizeof(uint32_t));
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed!");
+        goto Error;
+    }
+
 	// Copy constant data to be shared between all runs
     cudaStatus = cudaMemcpy(dev_k, cuda_k, k_size * sizeof(uint32_t), cudaMemcpyHostToDevice);
     if (cudaStatus != cudaSuccess) {
@@ -183,18 +196,6 @@ cudaError_t md5WithCuda(const uint8_t *initial_msg, size_t initial_len, uint8_t 
     cudaError_t cudaStatus;
 
     // Allocate GPU buffers for three vectors (two input, one output).
-    cudaStatus = cudaMalloc((void**)&dev_k, k_size * sizeof(uint32_t));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
-	
-    cudaStatus = cudaMalloc((void**)&dev_r, r_size * sizeof(uint32_t));
-    if (cudaStatus != cudaSuccess) {
-        fprintf(stderr, "cudaMalloc failed!");
-        goto Error;
-    }
-
     cudaStatus = cudaMalloc((void**)&dev_digest, md5_size * sizeof(uint8_t));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
